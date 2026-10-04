@@ -42,6 +42,8 @@ $ curl ip.bzh/hostname             #   reverse DNS
 $ curl ip.bzh/port/443             # can your port 443 be reached? open, closed or filtered
 $ curl ip.bzh/port/22,80,443       # up to 10 ports, one "<port> <state>" line each
 
+$ curl ip.bzh/asn/13335            # every network of an autonomous system, one per line
+
 $ nc ip.bzh 23                     # your address over bare TCP (BusyBox routers, minimal containers)
 $ telnet ip.bzh 23                 # the same with telnet
 
@@ -63,22 +65,25 @@ $ curl ip.bzh/help                 # every command, as a manual page (?lang=fr�
 
 Every result can be copied as text or as a link (`#q=…`, `#ping=…`, `#port=…`, `#cidr=…`…) that runs the tool again when opened.
 
-- **DNS leak test**: which resolvers actually answer for you? The server is itself the authoritative DNS of a dedicated zone.
+- **DNS leak test**: which resolvers actually answer for you? The server is itself the authoritative DNS of a dedicated zone. It also tells how they behave: the part of your address they pass on (EDNS Client Subnet), their defences against forged answers (random source ports, 0x20, cookies), QNAME minimisation and DNSSEC.
 - **WebRTC leak test**: compares the address WebRTC reveals (through the server's own STUN server) with your connection's address.
 - **Open port test**: up to 10 TCP ports of *your own* address, never a third party's.
 - **Ping and traceroute**: run from the server, to public IPv4 targets only.
+- **DNS propagation**: one question to six public resolvers (Cloudflare, Google, Quad9, DNS4EU, AdGuard, DNS.SB) and to the domain's own servers, to see whether a change has reached everyone.
+- **E-mail header analyzer**: sender, SPF/DKIM/DMARC results and the route of a message, server by server, with the time of each step. Read in the browser: the headers are sent nowhere.
 - **CIDR calculator** (IPv4 and IPv6) and **IPv6 generator** (ULA prefixes, splitting into /56, /60, /64), entirely in the browser.
 
 ### Address or domain lookup
 
-One search field takes an address, a domain or a pasted URL.
+One search field takes an address, a domain, an AS number or a pasted URL.
 
-- **An address**: location and ISP, reverse DNS, its network at the regional registry (RDAP), and the public blocklists mail servers consult (Spamhaus, SpamCop, PSBL, Mailspike, DroneBL).
+- **An address**: location and ISP, reverse DNS, its network at the regional registry (RDAP), its BGP route and RPKI state (RIPEstat), and the public blocklists mail servers consult (Spamhaus, SpamCop, PSBL, Mailspike, DroneBL).
+- **An AS number** (`AS3215`): its IPv4 and IPv6 networks, from the local database.
 - **A domain**:
-  - **DNS**: A, AAAA, CNAME, MX, NS, TXT and CAA records, and DNSSEC validation;
-  - **Mail**: SPF, DMARC, MTA-STS, TLS-RPT and DKIM keys;
-  - **Mail servers**: addresses, reverse DNS, blocklists, and STARTTLS on port 25 (no mail sent);
-  - **Web site**: certificate, HTTP to HTTPS redirect, security headers;
+  - **DNS**: A, AAAA, CNAME, MX, NS, TXT, CAA and HTTPS records, and DNSSEC validation;
+  - **Mail**: SPF, DMARC, MTA-STS, TLS-RPT, BIMI and DKIM keys;
+  - **Mail servers**: addresses, reverse DNS, blocklists, STARTTLS on port 25 (no mail sent) and DANE (TLSA records against the certificate);
+  - **Web site**: certificate, HTTP to HTTPS redirect, HTTP/3, security headers;
   - **Registration**: registrant, registrar, dates, status and abuse contact, over RDAP (whois for the TLDs without RDAP).
 
 ## Browser tab
@@ -107,7 +112,7 @@ The **Browser** tab shows what any website learns about you without asking, sums
 ## Privacy
 
 - **Your address** is looked up in local databases only, and kept in memory only as long as the rate limits need it.
-- **Searches** go to third parties only where the answer needs them: registries over RDAP or whois, blocklists over DNS, and the domain's own web and mail servers. Nothing is logged.
+- **Searches** go to third parties only where the answer needs them: registries over RDAP or whois, blocklists over DNS, RIPEstat for the BGP route of an address, public resolvers for the propagation test, and the domain's own web, mail and DNS servers. Nothing is logged.
 - **Statistics**: only per-day aggregated counters (endpoint, client type, IP family, language). Robots are not counted.
 - **Audience measurement**: self-hosted Matomo, cookieless. It is not loaded under Do Not Track or Global Privacy Control, and can be refused from the privacy page.
 
