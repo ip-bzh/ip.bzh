@@ -11,55 +11,109 @@ $ curl ip.bzh
 
 ## Highlights
 
-- **Simple**: the page shows your address, nothing else in the way.
-- **IPv6 coming soon**: IPv6 support is on its way.
+- **Simple**: the page shows your address, nothing else in the way. `curl ip.bzh` prints it bare.
 - **No trace**: no access logs, no stored addresses. Only aggregated counters are kept.
-- **Zero dependencies**: Go standard library only, a single static binary with templates, translations and assets embedded.
+- **No third-party calls for your address**: geolocation comes from local [DB-IP Lite](https://db-ip.com/db/lite.php) databases (CC BY 4.0) read by the server.
+- **Zero dependencies**: Go standard library only. A single static binary holds the templates, translations and assets.
+- **Works without JavaScript**: the pages and the tools (through plain forms) work without it; JavaScript adds live results and the browser checks.
 - **Multilingual**: French, Breton, English, German, Spanish, Italian.
+- **Light and dark themes**: follows the system, or a choice you make.
+- **IPv4 and IPv6**: the single-family hosts `4.ip.bzh` and `6.ip.bzh` let the home page show both of your addresses.
 
 ## Command-line usage
 
 ```console
-$ curl ip.bzh                     # address only, plain text
-$ curl ip.bzh/json                # address, country, city, ISP, ASN, hostname
-$ curl 'ip.bzh/json?ip=1.1.1.1'   # information about another address
-$ curl ip.bzh/port/443            # open, closed or filtered
-$ nc ip.bzh 23                    # raw TCP reply (BusyBox routers, minimal containers)
+$ curl ip.bzh                      # your address, plain text
+$ wget -qO- ip.bzh                 # the same with wget
+$ irm ip.bzh                       # the same in PowerShell
+$ curl ip.bzh/ip                   # always plain text, even when HTML is asked for
+
+$ curl ip.bzh/json                 # address, version, country, city, ISP, AS number, hostname
+$ curl 'ip.bzh/json?ip=1.1.1.1'    # the same for another address (without hostname)
+$ curl 'ip.bzh/json?lang=fr'       # place names in French (also br, de, es, it)
+
+$ curl ip.bzh/country              # one field, plain text:
+$ curl ip.bzh/country-code         #   country, ISO 3166 code,
+$ curl ip.bzh/city                 #   city,
+$ curl ip.bzh/asn                  #   AS number,
+$ curl ip.bzh/isp                  #   access provider or host,
+$ curl ip.bzh/hostname             #   reverse DNS
+
+$ curl ip.bzh/port/443             # can your port 443 be reached? open, closed or filtered
+$ curl ip.bzh/port/22,80,443       # up to 10 ports, one "<port> <state>" line each
+
+$ nc ip.bzh 23                     # your address over bare TCP (BusyBox routers, minimal containers)
+$ telnet ip.bzh 23                 # the same with telnet
+
+$ curl ip.bzh/stats                # usage statistics, aggregated, JSON
+$ curl ip.bzh/help                 # every command, as a manual page (?lang=fr…)
 ```
 
-## What the page shows
+## Home page
 
-- Your public IP address
+- Your public IP address, with a *Copy* button
 - Country (flag) and city
 - Internet service provider (ISP) and AS number
 - Hostname (reverse DNS)
+- Your address of the other IP family, when you have one
+- The kind of network the address belongs to: an access provider's, a host's or VPN provider's, or a Tor exit
+- A notice when your address changes while the page is open (a VPN switched on or off, another network)
 
-Geolocation relies on local [DB-IP Lite](https://db-ip.com/db/lite.php) databases (CC BY 4.0) read directly by the server: **no call to any third-party service**.
+## Tools
 
-## Toolbox
+Every result can be copied as text or as a link (`#q=…`, `#ping=…`, `#port=…`, `#cidr=…`…) that runs the tool again when opened.
 
-The **Tools** tab includes:
+- **DNS leak test**: which resolvers actually answer for you? The server is itself the authoritative DNS of a dedicated zone.
+- **WebRTC leak test**: compares the address WebRTC reveals (through the server's own STUN server) with your connection's address.
+- **Open port test**: up to 10 TCP ports of *your own* address, never a third party's.
+- **Ping and traceroute**: run from the server, to public IPv4 targets only.
+- **CIDR calculator** (IPv4 and IPv6) and **IPv6 generator** (ULA prefixes, splitting into /56, /60, /64), entirely in the browser.
 
-| Tool | Description |
-|---|---|
-| DNS leak test | Which resolvers actually answer for you? The server is itself the authoritative DNS of a dedicated zone |
-| WebRTC leak test | Compares the address seen by WebRTC (embedded STUN server) with your connection's address |
-| Open port test | Tests a TCP port on *your own* address, never a third party's |
-| Ping / Traceroute | Run from the server, to public IPv4 targets only |
-| IP lookup | Country, city, ISP and ASN of an address, from the local databases |
-| DNS query | A, AAAA, MX, NS, TXT, CNAME, PTR, never returning non-public addresses |
-| CIDR calculator | IPv4 and IPv6, entirely in the browser |
-| IPv6 generator | ULA (RFC 4193) and prefix splitting into /56, /60, /64, in the browser |
+### Address or domain lookup
+
+One search field takes an address, a domain or a pasted URL.
+
+- **An address**: location and ISP, reverse DNS, its network at the regional registry (RDAP), and the public blocklists mail servers consult (Spamhaus, SpamCop, PSBL, Mailspike, DroneBL).
+- **A domain**:
+  - **DNS**: A, AAAA, CNAME, MX, NS, TXT and CAA records, and DNSSEC validation;
+  - **Mail**: SPF, DMARC, MTA-STS, TLS-RPT and DKIM keys;
+  - **Mail servers**: addresses, reverse DNS, blocklists, and STARTTLS on port 25 (no mail sent);
+  - **Web site**: certificate, HTTP to HTTPS redirect, security headers;
+  - **Registration**: registrant, registrar, dates, status and abuse contact, over RDAP (whois for the TLDs without RDAP).
+
+## Browser tab
+
+The **Browser** tab shows what any website learns about you without asking, sums up the points to watch with an identification risk, and gives advice for your browser (Firefox, Brave, Chrome/Edge, Safari). The checks only run on request.
+
+- **Received by the server** (without JavaScript): User-Agent, Do Not Track and Global Privacy Control, the connection (HTTP and TLS versions, cipher, post-quantum key exchange, round-trip time) and the headers that describe the browser.
+- **Network fingerprint**: the TCP SYN (system and MTU, the way p0f reads it), the TLS ClientHello (JA4) and the start of HTTP/2 (Akamai's fingerprint), read on a second port of the server.
+- **Readable by JavaScript**: system and browser versions (Client Hints), languages, time zone, keyboard layout, screen, hardware, graphics card, devices, preferences and permission states.
+- **What a site can infer**:
+  - leaks: WebRTC, DNS, and the address of the other IP family;
+  - VPN, proxy and Tor hints;
+  - an inconsistent or spoofed User-Agent, tampering and automation;
+  - an ad blocker, private browsing and third-party cookies;
+  - anti-fingerprinting protections.
+- **Browser fingerprint**: an identifier built from 22 elements, each with its identifying power, plus a cross-browser identifier that links two browsers of one device. It is computed in the browser and never sent; on request, it is kept locally to show what changed at the next visit.
+- **Even without JavaScript**: a stylesheet alone tells the server the screen size, theme, engine and some installed fonts.
+- **Report**: everything the page shows, as text or JSON.
+
+## Other pages
+
+- **Help** (`/{lang}/help/`): every command, laid out as a manual page.
+- **Statistics** (`/{lang}/stats/`): requests per day and what they were for, drawn on the server. The JSON is at `/stats.json`.
+- **Privacy policy** and **legal notice**.
 
 ## Privacy
 
-- No access logs (nginx `access_log off`); no address is logged or persisted.
-- `/stats` only exposes per-day aggregated counters: endpoint, client type, IP family, language.
-- Audience measurement via self-hosted Matomo, cookieless, Do Not Track honored.
+- **Your address** is looked up in local databases only, and kept in memory only as long as the rate limits need it.
+- **Searches** go to third parties only where the answer needs them: registries over RDAP or whois, blocklists over DNS, and the domain's own web and mail servers. Nothing is logged.
+- **Statistics**: only per-day aggregated counters (endpoint, client type, IP family, language). Robots are not counted.
+- **Audience measurement**: self-hosted Matomo, cookieless. It is not loaded under Do Not Track or Global Privacy Control, and can be refused from the privacy page.
 
 ## Security
 
-**Reporting a vulnerability**: `contact@ti-nuage.fr` (published in [`/.well-known/security.txt`](https://ip.bzh/.well-known/security.txt), RFC 9116).
+Reporting a vulnerability: `contact@ip.bzh` (published in [`/.well-known/security.txt`](https://ip.bzh/.well-known/security.txt), RFC 9116).
 
 ## Contributing
 
