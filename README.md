@@ -1,6 +1,6 @@
 # ip.bzh
 
-**What is my IP address?** A Breton web service, minimal and privacy-respecting, to find out your public IP address and diagnose your connection. Made in Brittany, hosted by [Ti Nuage](https://ti-nuage.fr).
+**What is my IP address?** A Breton web service, minimal and privacy-respecting, to find out your public IP address and diagnose your connection. Hosted in Brittany by [Ti Nuage](https://ti-nuage.fr).
 
 🌐 **[ip.bzh](https://ip.bzh)**
 
@@ -13,7 +13,7 @@ $ curl ip.bzh
 
 - **Simple**: the page shows your address, nothing else in the way. `curl ip.bzh` prints it bare.
 - **No trace**: no access logs, no stored addresses. Only aggregated counters are kept.
-- **No third-party calls for your address**: geolocation comes from local [DB-IP Lite](https://db-ip.com/db/lite.php) databases (CC BY 4.0) read by the server.
+- **No third-party calls for your address**: geolocation comes from local DB-IP Lite databases (CC BY 4.0) read by the server.
 - **Zero dependencies**: Go standard library only. A single static binary holds the templates, translations and assets.
 - **Works without JavaScript**: the pages and the tools (through plain forms) work without it; JavaScript adds live results and the browser checks.
 - **Multilingual**: French, Breton, English, German, Spanish, Italian.
@@ -109,6 +109,13 @@ The **Browser** tab shows what any website learns about you without asking, sums
 - **Statistics** (`/{lang}/stats/`): requests per day and what they were for, drawn on the server. The JSON is at `/stats.json`.
 - **Privacy policy** and **legal notice**.
 
+## License
+
+ip.bzh is under the [MIT License](LICENSE), except:
+
+- **the game**, *Proxima 268* (`/{lang}/game/`), its music and its files: under the [PolyForm Strict License 1.0.0](LICENSE-GAME.md), free to play and to use for your own noncommercial purposes, but not to sell, change, redistribute or serve from another website. [`LICENSE-GAME.md`](LICENSE-GAME.md) lists the files it covers;
+- `internal/rdap/registrars.txt`: drawn from ICANN's list of accredited registrars, under ICANN's own terms.
+
 ## Privacy
 
 - **Your address** is looked up in local databases only, and kept in memory only as long as the rate limits need it.
@@ -118,8 +125,8 @@ The **Browser** tab shows what any website learns about you without asking, sums
 
 ## Security
 
-Reporting a vulnerability: `contact@ip.bzh` (published in [`/.well-known/security.txt`](https://ip.bzh/.well-known/security.txt), RFC 9116).
+Reporting a vulnerability: `contact@ip.bzh`.
 
 ## Contributing
 
-Translations are welcome, especially **Breton proofreading by native speakers**: contact `contact@ti-nuage.fr`.
+Translations are welcome, especially **Breton proofreading by native speakers**: contact `contact@ip.bzh`.
